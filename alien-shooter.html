@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>外星人射擊遊戲</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    canvas {
+      background: #000;
+      border: 2px solid white;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let player = {
+      x: canvas.width / 2 - 20,
+      y: canvas.height - 40,
+      width: 40,
+      height: 20,
+      color: 'lime'
+    };
+
+    let bullets = [];
+    let enemies = [];
+    let score = 0;
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    function handleKeyDown(e) {
+      if (e.key === 'ArrowLeft') player.x -= 20;
+      if (e.key === 'ArrowRight') player.x += 20;
+      if (e.key === ' ' || e.key === 'Spacebar') shoot();
+    }
+
+    function shoot() {
+      bullets.push({
+        x: player.x + player.width / 2 - 2,
+        y: player.y,
+        width: 4,
+        height: 10
+      });
+    }
+
+    function createEnemy() {
+      const x = Math.random() * (canvas.width - 30);
+      enemies.push({
+        x,
+        y: 0,
+        width: 30,
+        height: 20,
+        speed: 2
+      });
+    }
+
+    function drawPlayer() {
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    function drawBullets() {
+      ctx.fillStyle = 'yellow';
+      bullets.forEach((b, index) => {
+        b.y -= 5;
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+        if (b.y < 0) bullets.splice(index, 1);
+      });
+    }
+
+    function drawEnemies() {
+      ctx.fillStyle = 'red';
+      enemies.forEach((e, eIndex) => {
+        e.y += e.speed;
+        ctx.fillRect(e.x, e.y, e.width, e.height);
+
+        // 撞到底部，遊戲結束
+        if (e.y + e.height > canvas.height) {
+          alert("遊戲結束！得分：" + score);
+          document.location.reload();
+        }
+
+        // 子彈打中敵人
+        bullets.forEach((b, bIndex) => {
+          if (
+            b.x < e.x + e.width &&
+            b.x + b.width > e.x &&
+            b.y < e.y + e.height &&
+            b.y + b.height > e.y
+          ) {
+            enemies.splice(eIndex, 1);
+            bullets.splice(bIndex, 1);
+            score += 10;
+          }
+        });
+      });
+    }
+
+    function drawScore() {
+      ctx.fillStyle = 'white';
+      ctx.font = '16px Arial';
+      ctx.fillText("得分: " + score, 10, 20);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+      drawBullets();
+      drawEnemies();
+      drawScore();
+      requestAnimationFrame(draw);
+    }
+
+    setInterval(createEnemy, 1000);
+    draw();
+  </script>
+</body>
+</html>
+     
